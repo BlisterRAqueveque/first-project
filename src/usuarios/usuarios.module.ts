@@ -1,13 +1,31 @@
 import { Module } from '@nestjs/common';
-import { UsuariosService } from './usuarios.service';
-import { UsuariosController } from './usuarios.controller';
+import { JwtModule } from '@nestjs/jwt';
+import { MulterModule } from '@nestjs/platform-express';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Usuarios } from './usuarios.entity';
+import { envs } from 'src/config';
+import { saveImagesToStorage } from 'src/helpers/image-storage';
 import { AuthService } from './auth/auth.service';
+import { UsuariosController } from './usuarios.controller';
+import { Usuarios } from './usuarios.entity';
+import { UsuariosService } from './usuarios.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Usuarios])],
+  imports: [
+    TypeOrmModule.forFeature([Usuarios]),
+    JwtModule.register({
+      secret: envs.jwt,
+      signOptions: {
+        expiresIn: '24h',
+      },
+    }),
+    MulterModule.register({
+      dest: './uploads',
+      fileFilter: saveImagesToStorage('avatar').fileFilter,
+      storage: saveImagesToStorage('avatar').storage,
+    }),
+  ],
   controllers: [UsuariosController],
   providers: [UsuariosService, AuthService],
+  exports: [AuthService, UsuariosService],
 })
 export class UsuariosModule {}

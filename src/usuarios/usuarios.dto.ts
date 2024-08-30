@@ -6,11 +6,12 @@ export class UsuarioDto {
   @IsString()
   nombre: string;
 
-  @IsEmail()
   email: string;
 
   @IsString()
   password: string;
+
+  avatar: string;
 
   @IsOptional()
   @IsBoolean()
