@@ -20,7 +20,7 @@ export class UsuariosService {
   async register(usuario: UsuarioDto) {
     try {
       //! The hash fails if doesn't exist the string
-      //if (!usuario.password) throw new UnauthorizedException('No password');
+      if (!usuario.password) throw new UnauthorizedException('No password');
 
       const hash = await this.authService.hashPassword(usuario.password);
       usuario.password = hash;
