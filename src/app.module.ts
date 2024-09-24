@@ -6,11 +6,18 @@ import {
 } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { db } from './config';
+import { SocketModule } from './socket/socket.module';
 import { JwtMiddleware } from './usuarios/auth/middlewares/jwt/jwt.middleware';
 import { UsuariosModule } from './usuarios/usuarios.module';
+import { ReservasModule } from './reservas/reservas.module';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(db), UsuariosModule],
+  imports: [
+    TypeOrmModule.forRoot(db),
+    UsuariosModule,
+    SocketModule,
+    ReservasModule,
+  ],
   controllers: [],
   providers: [],
 })

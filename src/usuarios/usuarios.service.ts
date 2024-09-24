@@ -7,13 +7,16 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryFailedError, Repository } from 'typeorm';
 import { AuthService } from './auth/auth.service';
-import { UsuarioDto } from './usuarios.dto';
-import { Usuarios } from './usuarios.entity';
+import { UsuarioDto } from './dto/usuarios.dto';
+import { UsuarioEntity } from './entity/usuarios.entity';
+import { LoginDto } from './dto/login.dto';
+import { Paginator } from 'src/common';
 
 @Injectable()
 export class UsuariosService {
   constructor(
-    @InjectRepository(Usuarios) private readonly repo: Repository<UsuarioDto>,
+    @InjectRepository(UsuarioEntity)
+    private readonly repo: Repository<UsuarioDto>,
     private readonly authService: AuthService,
   ) {}
 
@@ -37,8 +40,9 @@ export class UsuariosService {
     }
   }
 
-  async login(email: string, pass: string) {
+  async login(credenciales: LoginDto) {
     try {
+      const { email, pass } = credenciales;
       const user = await this.repo.findOne({ where: { email } });
       console.log(user);
 
@@ -67,9 +71,16 @@ export class UsuariosService {
    * @param id ID del usuario
    * @returns UsuarioDTO
    */
-  async getOne(id: number): Promise<UsuarioDto> {
+  async getOne(id: number, token?: string): Promise<UsuarioDto> {
     try {
-      const usuario = await this.repo.findOne({ where: { id } });
+      const esValido = await this.authService.verificarRol(['admin'], token);
+
+      if (!esValido) throw new UnauthorizedException('Rol no válido');
+
+      const usuario = await this.repo.findOne({
+        where: { id },
+        relations: { reservas: true },
+      });
 
       if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
@@ -85,11 +96,11 @@ export class UsuariosService {
   async updateUser(
     id: number,
     user: Partial<UsuarioDto>,
-    files: Express.Multer.File[],
+    file: Express.Multer.File,
   ) {
     try {
-      if (files.length > 0) {
-        user.avatar = files[0].filename;
+      if (file) {
+        user.avatar = file.filename;
       }
       const oldUser = await this.getOne(id);
 
@@ -103,6 +114,21 @@ export class UsuariosService {
       if (err instanceof QueryFailedError)
         throw new HttpException(`${err.name} ${err.driverError}`, 404);
       throw new HttpException(err.message, err.status);
+    }
+  }
+
+  async findMany(paginador?: Paginator) {
+    try {
+      const { page, perPage, sortBy } = paginador;
+      const result = await this.repo.find({
+        skip: page ? (page - 1) * perPage : undefined,
+        take: perPage ? perPage : undefined,
+        order: { id: sortBy == 'asc' ? 'asc' : 'desc' },
+      });
+      return result;
+    } catch (error: any) {
+      console.log(error);
+      throw new HttpException(error.message, error.status);
     }
   }
 }

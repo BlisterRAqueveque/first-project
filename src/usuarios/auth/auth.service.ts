@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { UsuarioDto } from '../usuarios.dto';
+import { UsuarioDto } from '../dto/usuarios.dto';
+import { UsuariosService } from '../usuarios.service';
 
 @Injectable()
 export class AuthService {
@@ -26,7 +27,10 @@ export class AuthService {
     return bcrypt.compare(password, hashPassword);
   }
 
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private jwtService: JwtService,
+    private userService: UsuariosService,
+  ) {}
 
   /**
    * @description compare user session jwt
@@ -53,5 +57,16 @@ export class AuthService {
     };
     //* Retornamos el token
     return this.jwtService.signAsync(payload);
+  }
+
+  async verificarRol(roles: string[], token: string) {
+    try {
+      const decodedUser = await this.verifyJwt(token);
+      const usuario = await this.userService.getOne(decodedUser.sub);
+
+      return roles.includes(usuario.rol)
+    } catch (error) {
+      throw new UnauthorizedException('Token no válido');
+    }
   }
 }

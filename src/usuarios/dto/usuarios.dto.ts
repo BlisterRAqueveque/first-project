@@ -1,4 +1,5 @@
 import { IsString, IsEmail, IsOptional, IsBoolean } from 'class-validator';
+import { ReservaDto } from 'src/reservas/reservas/dto/reservas.dto';
 
 export class UsuarioDto {
   id: number;
@@ -19,4 +20,9 @@ export class UsuarioDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean = true;
+
+  @IsOptional()
+  reservas: ReservaDto[];
+
+  rol: string;
 }

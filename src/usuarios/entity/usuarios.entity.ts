@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { ReservaEntity } from 'src/reservas/reservas/entity/reservas.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 
 @Entity('usuarios')
-export class Usuarios {
+export class UsuarioEntity {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
@@ -19,4 +20,7 @@ export class Usuarios {
 
   @Column({ type: 'bool', default: true })
   isActive: boolean;
+
+  @OneToMany(() => ReservaEntity, (reservas) => reservas.usuario)
+  reservas: ReservaEntity[];
 }

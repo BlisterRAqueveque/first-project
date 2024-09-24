@@ -6,12 +6,12 @@ import { envs } from 'src/config';
 import { saveImagesToStorage } from 'src/helpers/image-storage';
 import { AuthService } from './auth/auth.service';
 import { UsuariosController } from './usuarios.controller';
-import { Usuarios } from './usuarios.entity';
+import { UsuarioEntity } from './entity/usuarios.entity';
 import { UsuariosService } from './usuarios.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Usuarios]),
+    TypeOrmModule.forFeature([UsuarioEntity]),
     JwtModule.register({
       secret: envs.jwt,
       signOptions: {
